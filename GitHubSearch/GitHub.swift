@@ -86,8 +86,8 @@ public class GitHubAPI {
       - endpoint: API endpoint.
       - handler:  Request results handler.
     */
-    public func request<Endpoint: APIEndpoint>(endpoint: Endpoint, handler: (task: NSURLSessionDataTask, response: Endpoint.ResponseType?, error: ErrorType?) -> Void) {
-        let success = { (task: NSURLSessionDataTask!, response: AnyObject!) -> Void in
+    public func request<Endpoint: APIEndpoint>(endpoint: Endpoint, handler: (task: NSURLSessionDataTask, response: Endpoint.ResponseType?, error: ErrorType?) -> Void ) {
+        let success = { (task: NSURLSessionDataTask, response: AnyObject?) -> Void in
             if let JSON = response as? JSONObject {
                 do {
                     let response = try Endpoint.ResponseType(JSON: JSON)
@@ -99,7 +99,7 @@ public class GitHubAPI {
                 handler(task: task, response: nil, error: APIError.UnexpectedResponse)
             }
         }
-        let failure = { (task: NSURLSessionDataTask!, var error: NSError!) -> Void in
+        let failure = { (task: NSURLSessionDataTask?, var error: NSError) -> Void in
             // If the error has any data, put it into "localized failure reason"
             if let errorData = error.userInfo[AFNetworkingOperationFailingURLResponseDataErrorKey] as? NSData,
                 let errorDescription = NSString(data: errorData, encoding: NSUTF8StringEncoding) {
@@ -107,9 +107,9 @@ public class GitHubAPI {
                     userInfo[NSLocalizedFailureReasonErrorKey] = errorDescription
                     error = NSError(domain: error.domain, code: error.code, userInfo: userInfo)
             }
-            handler(task: task, response: nil, error: error)
+            handler(task: task!, response: nil, error: error)
         }
-
+        
         switch endpoint.method {
         case .Get:
             HTTPSessionManager.GET(endpoint.path, parameters: endpoint.parameters.dictionary, success: success, failure: failure)
